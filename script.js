@@ -24,7 +24,7 @@ require([
     // definitionExpression: "CNTRY_NAME = 'EGYPT'", //displays only Egypt
     popupTemplate: {
       title: '{CNTRY_NAME}',
-      content: '{CITY_NAME}',
+      content: '{CITY_NAME} <br/>  It has pop of {POP}',
     },
   })
   var mymap = new Map({
@@ -39,7 +39,7 @@ require([
     map: mymap,
     container: 'map',
     center: [33, 33],
-    zoom: 6,
+    zoom: 3,
   })
   featureLayer.on('layerview-create', (e) => {
     console.log(e)
