@@ -1,0 +1,116 @@
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Routing Esri Js Api</title>
+
+    <style>
+      html,
+      body,
+      #viewDiv {
+        padding: 0;
+        margin: 0;
+        height: 100%;
+        width: 100%;
+      }
+    </style>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.24/esri/themes/dark/main.css" />
+    <script src="https://js.arcgis.com/4.24/"></script>
+
+    <script>
+      require(["esri/Map", 
+      "esri/views/MapView", 
+       "esri/layers/GraphicsLayer",
+       "esri/rest/support/RouteParameters",
+       "esri/rest/support/FeatureSet",
+       "esri/Graphic",
+       "esri/rest/route"
+    ], function(
+        Map,
+        MapView,
+        GraphicsLayer,
+        RouteParameters,
+        FeatureSet,
+        Graphic,
+        route
+      ) {
+
+        // An authorization string used to access the basemap, geocoding and routing services
+        const apiKey = "AAPK2791149d68d848348a618346dd9768f5OWdBoNB_KWEXwT4z6pUhOGUKlpe2WWA151q98zjM0rFnjQHEKfUvbWEzAbVpukth"
+
+        // create a new RouteLayer, required for Directions widget
+        
+
+        // new RouteLayer must be added to the map
+        const map = new Map({
+          basemap: "topo-vector",
+         
+        });
+
+        const view = new MapView({
+          zoom: 14,
+          center: [-118.24, 34.05],
+          container: "viewDiv",
+          map: map
+        });
+
+   
+       
+
+    var RoutingUrl="https://route-api.arcgis.com/arcgis/rest/services/World/Route/NAServer/Route_World"
+    var RoutingParams= new RouteParameters({
+       directionsLanguage:"ar_EG",
+       returnDirections:true,
+        stops: new FeatureSet(),
+        apiKey:apiKey
+       })
+
+       view.on("click", (e)=>{
+                addStops(e.mapPoint)
+        })
+
+        function getRoute() {
+        route.solve(RoutingUrl,RoutingParams).then((data)=>{
+            console.log(data)
+        var routeline= data.routeResults[0].route
+        routeline.symbol={
+            type: "simple-line", 
+            width:3,
+            color:"blue"  
+        }
+       view.graphics.add(routeline)
+        })
+    }
+
+function addStops(point){
+
+    var graphic =new Graphic({
+    geometry:point,
+    symbol:{
+      type: "simple-marker", 
+      color: [226, 119, 40],
+      outline: {
+        color: [255, 255, 255],
+        width: 2
+      }
+    }
+  })
+    view.graphics.add(graphic);
+    RoutingParams.stops.features.push(graphic);
+    if (RoutingParams.stops.features.length >= 2) {
+        getRoute()
+      }
+
+    }
+   
+  
+});
+    </script>
+  </head>
+
+  <body>
+    <div id="viewDiv"></div>
+  </body>
+</html>

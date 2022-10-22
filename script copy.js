@@ -7,6 +7,10 @@ require([
   'esri/layers/FeatureLayer',
   'esri/widgets/Search',
   'esri/request',
+  "esri/rest/locator",
+  "esri/layers/GraphicsLayer",
+  "esri/Graphic"
+
 ], function (
   esriConfig,
   Map,
@@ -15,8 +19,12 @@ require([
   AreaMeasurement2D,
   FeatureLayer,
   Search,
-  esriRequest
+  esriRequest,
+  locator,
+  GraphicsLayer,
+  Graphic
 ) {
+window.alert("click any where to get Burger resturants")
   esriConfig.apiKey =
     'AAPK2791149d68d848348a618346dd9768f5OWdBoNB_KWEXwT4z6pUhOGUKlpe2WWA151q98zjM0rFnjQHEKfUvbWEzAbVpukth'
   //the map is used to manage overlaying Layers 2D or 3D
@@ -142,15 +150,12 @@ require([
     zoom: 3,
   })
   featureLayer.on('layerview-create', (e) => {
-    console.log(e)
     featureLayer.queryExtent().then((q) => {
-      console.log(q)
       view.goTo(q.extent, { duration: 5000 })
     })
   })
 
   view.on('click', (event) => {
-    console.log(event)
     //gotTo
     /**
      * @param  {center}
@@ -208,9 +213,56 @@ require([
       },
     }
     esriRequest(QueryUrl, reqOpts).then((r) => {
-      console.log(r.data.features[0].attributes)
       var text = JSON.stringify(r.data.features[0].attributes)
       document.getElementById('output').textContent = text
     })
   })
+
+  function findplaces(pt){
+  
+  view.graphics.removeAll()
+
+    var GraphicLayers=new GraphicsLayer()
+   var  url="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+    var MyParams={
+    categories:["Burgers"],
+    location:pt,
+    maxLoactions:10,
+    outFields:["*"]
+  }
+locator.addressToLocations(url,MyParams).then((places)=>{
+
+places.forEach(place => {
+  var graphic =new Graphic({
+    geometry:place.location,
+    attributes:place.attributes,
+    symbol:{
+      type: "simple-marker", 
+      color: [226, 119, 40],
+      outline: {
+        color: [255, 255, 255],
+        width: 2
+      }
+    },
+    popupTemplate:{
+      title: "{PlaceName}",
+      content: 
+      `<ul>
+      <li>City : "{City}"<li/><li>Country : "{CntryName}"<li/><li>District : "{District}"<li/><li>Address : "{LongLabel}"<li/>
+      <ul/>`,
+    }
+  })
+    console.log(place)
+    GraphicLayers.graphics.add(graphic)
+view.graphics.add(graphic)
+
+  
+});
+view.graphics.add(GraphicLayers)
+})
+}
+  view.on("click",(e)=>{
+    findplaces(e.mapPoint)
+  })
+
 })
